@@ -40,7 +40,7 @@ router.post('/upload', upload.single('certificate'), async (req, res) => {
     await certificate.save();
 
     // Generate view URL
-    const viewUrl = `https://work-1-qpkodnrhqdzavzod.prod-runtime.all-hands.dev/view/${certificateId}`;
+    const viewUrl = `${process.env.FRONTEND_URL}/view/${certificateId}`;
 
     // Generate QR code (optional)
     let qrCode = null;
@@ -219,7 +219,7 @@ router.get('/certificate/:id/qr', async (req, res) => {
       });
     }
 
-    const viewUrl = `https://work-1-qpkodnrhqdzavzod.prod-runtime.all-hands.dev/view/${id}`;
+    const viewUrl = `${process.env.FRONTEND_URL}/view/${id}`;
     const qrCodeBuffer = await qrGenerator.generateQRBuffer(viewUrl);
 
     res.setHeader('Content-Type', 'image/png');
