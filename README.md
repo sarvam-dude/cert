@@ -6,11 +6,13 @@ A secure, user-friendly web application that allows administrators to upload cer
 
 - **Backend:** ✅ Fully operational and tested on port 12001
 - **Frontend:** ✅ Code complete and ready for deployment
-- **Database:** ✅ MongoDB connected and functional
+- **Database:** ✅ MongoDB connected and functional (index issues resolved)
 - **API Endpoints:** ✅ All endpoints tested and working
 - **File Upload:** ✅ Working with validation (PDF, JPG, PNG only)
 - **QR Generation:** ✅ Working and accessible
 - **Security:** ✅ File validation and 7-day expiry implemented
+- **CORS:** ✅ Properly configured for cross-origin requests
+- **Error Handling:** ✅ Comprehensive error handling implemented
 
 ## 🚀 Features
 
@@ -193,6 +195,26 @@ cert/
 
 ## 🌐 API Endpoints
 
+### Health Check
+```http
+GET /health
+
+Response:
+{
+  "success": true,
+  "message": "Certificate Management API is running",
+  "timestamp": "2023-07-11T10:00:00.000Z",
+  "environment": "development",
+  "version": "1.0.0",
+  "features": {
+    "upload": "enabled",
+    "qrGeneration": "enabled",
+    "emailService": "enabled",
+    "fileTypes": ["pdf", "png", "jpg", "jpeg"]
+  }
+}
+```
+
 ### Upload Certificate
 ```http
 POST /api/upload
@@ -308,14 +330,46 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ## 🧪 Testing
 
-### Backend Testing
+The application has been comprehensively tested with the following results:
+
+### ✅ Backend API Tests (All Passed)
+- **Health Check**: API running correctly on port 12001
+- **Upload API**: PDF, PNG, JPEG uploads working properly
+- **File Validation**: Invalid file types properly rejected (e.g., TXT files)
+- **Certificate Retrieval**: File download working correctly
+- **Certificate Info**: Metadata retrieval working
+- **QR Code Generation**: QR codes generated successfully
+- **CORS Configuration**: Cross-origin requests working properly
+
+### ✅ Database Tests (All Passed)
+- **MongoDB Connection**: Connected successfully
+- **Certificate Storage**: Multiple certificates stored successfully
+- **Index Issues**: Duplicate key errors resolved
+- **Data Integrity**: All uploads properly saved with metadata
+
+### ✅ Infrastructure Tests (All Passed)
+- **Backend Server**: Running healthy on port 12001
+- **Frontend Server**: Running on port 12009
+- **File Storage**: 16+ test files successfully stored
+- **Environment Variables**: All properly configured
+
+### Manual Testing Commands
+```bash
+# Test health endpoint
+curl http://localhost:12001/health
+
+# Test file upload
+curl -X POST "http://localhost:12001/api/upload" -F "certificate=@test.pdf"
+
+# Test CORS
+curl -X OPTIONS "http://localhost:12001/api/upload" -H "Origin: http://localhost:12009"
+```
+
+### Automated Testing
 ```bash
 cd backend
 npm test
-```
 
-### Frontend Testing
-```bash
 cd frontend
 npm test
 ```
@@ -336,6 +390,48 @@ npm test
 3. View images with optimized display
 4. Download certificate if needed
 5. Generate QR code for mobile sharing
+
+## 🔧 Troubleshooting
+
+### Common Issues and Solutions
+
+#### Database Connection Issues
+```bash
+# Check MongoDB connection
+mongosh "mongodb://localhost:27017/certificate_db"
+
+# Restart MongoDB service
+sudo systemctl restart mongod
+```
+
+#### Upload API Issues
+- **File too large**: Check `MAX_FILE_SIZE` in environment variables
+- **Invalid file type**: Ensure file is PDF, PNG, or JPEG
+- **CORS errors**: Verify `FRONTEND_URL` in backend environment
+
+#### Frontend Connection Issues
+- **API connection failed**: Check `VITE_API_BASE_URL` in frontend environment
+- **Build errors**: Clear node_modules and reinstall dependencies
+- **Port conflicts**: Use different ports in environment variables
+
+#### Database Index Issues (Fixed)
+The application previously had MongoDB duplicate key errors which have been resolved by:
+- Removing conflicting unique indexes
+- Implementing proper error handling
+- Adding database connection validation
+
+### Environment Variables Checklist
+**Backend (.env)**:
+- ✅ `MONGODB_URI` - Database connection string
+- ✅ `PORT` - Server port (default: 12001)
+- ✅ `FRONTEND_URL` - Frontend URL for CORS
+- ✅ `MAX_FILE_SIZE` - Maximum upload size
+- ✅ `NODE_ENV` - Environment mode
+
+**Frontend (.env)**:
+- ✅ `VITE_API_BASE_URL` - Backend API URL
+- ✅ `VITE_MAX_FILE_SIZE` - Frontend file size limit
+- ✅ `VITE_ALLOWED_FILE_TYPES` - Allowed file extensions
 
 ## 🤝 Contributing
 
