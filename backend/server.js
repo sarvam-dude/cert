@@ -16,7 +16,11 @@ connectDB();
 app.use(cors({
   origin: [
     process.env.FRONTEND_URL,
-    'http://localhost:12000'
+    'http://localhost:12000',
+    'https://work-1-qpkodnrhqdzavzod.prod-runtime.all-hands.dev',
+    'https://work-2-qpkodnrhqdzavzod.prod-runtime.all-hands.dev',
+    /^http:\/\/localhost:\d+$/,
+    /^https:\/\/work-\d+-qpkodnrhqdzavzod\.prod-runtime\.all-hands\.dev$/
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
