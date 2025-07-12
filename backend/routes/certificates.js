@@ -113,8 +113,18 @@ router.get('/certificate/:id', async (req, res) => {
       });
     }
 
+    // Resolve file path (handle both relative and absolute paths)
+    const path = require('path');
+    let filePath = certificate.filePath;
+    
+    // If path is relative, resolve it relative to the backend directory
+    if (!path.isAbsolute(filePath)) {
+      filePath = path.resolve(__dirname, '..', filePath);
+    }
+    
     // Check if file exists
-    if (!fs.existsSync(certificate.filePath)) {
+    if (!fs.existsSync(filePath)) {
+      console.error(`Certificate file not found: ${filePath}`);
       return res.status(404).json({
         success: false,
         message: 'Certificate file not found'
@@ -141,9 +151,12 @@ router.get('/certificate/:id', async (req, res) => {
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `inline; filename="${certificate.originalName}"`);
     res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Stream the file
-    const fileStream = fs.createReadStream(certificate.filePath);
+    // Stream the file using the resolved path
+    const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);
 
   } catch (error) {
