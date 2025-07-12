@@ -5,7 +5,7 @@ import LoadingSpinner from './LoadingSpinner';
 import { certificateAPI } from '../utils/api';
 
 // Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 const CertificateViewer = ({ certificateId, certificateInfo }) => {
   const [numPages, setNumPages] = useState(null);
@@ -26,7 +26,20 @@ const CertificateViewer = ({ certificateId, certificateInfo }) => {
 
   const onDocumentLoadError = (error) => {
     console.error('PDF load error:', error);
-    setError('Failed to load PDF document');
+    console.error('Certificate URL:', certificateUrl);
+    console.error('Certificate Info:', certificateInfo);
+    
+    let errorMessage = 'Failed to load the PDF document. The file may be corrupted.';
+    
+    if (error.name === 'InvalidPDFException') {
+      errorMessage = 'The file is not a valid PDF document.';
+    } else if (error.name === 'MissingPDFException') {
+      errorMessage = 'PDF file not found or could not be loaded.';
+    } else if (error.name === 'UnexpectedResponseException') {
+      errorMessage = 'Failed to download the PDF file. Please try again.';
+    }
+    
+    setError(errorMessage);
     setLoading(false);
   };
 
@@ -83,8 +96,26 @@ const CertificateViewer = ({ certificateId, certificateInfo }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to Load Certificate</h3>
-        <p className="text-gray-600">{error}</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">PDF Loading Error</h3>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <div className="space-y-2">
+          <button
+            onClick={() => window.open(certificateUrl, '_blank')}
+            className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+          >
+            <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            Open in New Tab
+          </button>
+          <button
+            onClick={downloadCertificate}
+            className="inline-flex items-center px-4 py-2 ml-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download PDF
+          </button>
+        </div>
       </div>
     );
   }
@@ -169,7 +200,13 @@ const CertificateViewer = ({ certificateId, certificateInfo }) => {
         <div className="flex justify-center">
           {isPDF ? (
             <Document
-              file={certificateUrl}
+              file={{
+                url: certificateUrl,
+                httpHeaders: {
+                  'Accept': 'application/pdf',
+                },
+                withCredentials: false
+              }}
               onLoadSuccess={onDocumentLoadSuccess}
               onLoadError={onDocumentLoadError}
               loading={
@@ -177,6 +214,10 @@ const CertificateViewer = ({ certificateId, certificateInfo }) => {
                   <LoadingSpinner size="lg" className="text-primary-600" />
                 </div>
               }
+              options={{
+                cMapUrl: 'https://unpkg.com/pdfjs-dist@' + pdfjs.version + '/cmaps/',
+                cMapPacked: true,
+              }}
             >
               <Page
                 pageNumber={pageNumber}

@@ -9,14 +9,21 @@ const errorHandler = require('./middleware/errorHandler');
 const app = express();
 const PORT = process.env.PORT || 12001;
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB with error handling
+connectDB().catch(err => {
+  console.error('❌ Failed to connect to MongoDB:', err.message);
+  process.exit(1);
+});
 
 // Middleware
 app.use(cors({
   origin: [
     process.env.FRONTEND_URL,
-    'http://localhost:12000'
+    'http://localhost:12000',
+    'https://work-1-qpkodnrhqdzavzod.prod-runtime.all-hands.dev',
+    'https://work-2-qpkodnrhqdzavzod.prod-runtime.all-hands.dev',
+    /^http:\/\/localhost:\d+$/,
+    /^https:\/\/work-\d+-qpkodnrhqdzavzod\.prod-runtime\.all-hands\.dev$/
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -32,7 +39,14 @@ app.get('/health', (req, res) => {
     success: true,
     message: 'Certificate Management API is running',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    version: '1.0.0',
+    features: {
+      upload: 'enabled',
+      qrGeneration: 'enabled',
+      emailService: 'enabled',
+      fileTypes: ['pdf', 'png', 'jpg', 'jpeg']
+    }
   });
 });
 
@@ -60,6 +74,11 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Certificate Management API running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`📋 API endpoints:`);
+  console.log(`   POST /api/upload - Upload certificate`);
+  console.log(`   GET  /api/certificate/:id - Download certificate`);
+  console.log(`   GET  /api/certificate/:id/info - Get certificate info`);
+  console.log(`   GET  /api/certificate/:id/qr - Generate QR code`);
   
   if (process.env.NODE_ENV === 'development') {
     console.log(`📁 Static files: http://localhost:${PORT}/uploads`);

@@ -45,9 +45,10 @@ const certificateSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for efficient queries
-certificateSchema.index({ _id: 1 });
+// Index for efficient queries (excluding _id as it's automatically indexed)
 certificateSchema.index({ uploadDate: -1 });
 certificateSchema.index({ expiryDate: 1 });
+certificateSchema.index({ fileType: 1 });
+certificateSchema.index({ isActive: 1 });
 
 module.exports = mongoose.model('Certificate', certificateSchema);
