@@ -28,18 +28,10 @@ const storage = multer.diskStorage({
 
 // File filter to accept only PDF, JPG, JPEG, PNG
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
   const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
   
   const fileExtension = path.extname(file.originalname).toLowerCase();
-  
-  console.log('File upload debug:', {
-    originalname: file.originalname,
-    mimetype: file.mimetype,
-    fileExtension: fileExtension,
-    allowedTypes: allowedTypes,
-    allowedExtensions: allowedExtensions
-  });
   
   if (allowedTypes.includes(file.mimetype) && allowedExtensions.includes(fileExtension)) {
     cb(null, true);
